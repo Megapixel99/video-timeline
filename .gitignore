@@ -1,0 +1,26 @@
+# Test fixtures are generated, not committed — 13.6 MB of video that the suite
+# rebuilds from nothing. `python3 tests/test_vtl.py` calls the generators when
+# they are missing, and `bash tests/make_fixture.sh` /
+# `python3 tests/make_motion_fixture.py` make them on demand.
+tests/fixture.mp4
+tests/fixture.mov
+tests/fixture_motion.mp4
+
+# Output bundles: a few MB of JPEGs each, regenerable from the source video
+*.vtl/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local editor / tool state
+.claude/settings.local.json
+.DS_Store
+
+# Never commit secrets (this project makes no network calls and needs none,
+# but the rule stands)
+.env
+.env.*
+!.env.example
