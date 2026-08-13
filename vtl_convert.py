@@ -47,7 +47,7 @@ BLOCK_SEARCH = 3           # +/- px each grid block may search from the global s
 DARK_LUMA = 16             # mean luma below this counts as "near black"
 AUDIO_SR = 16000
 AUDIO_HOP = 0.05           # seconds per audio analysis window
-OCR_TIMEOUT = 25.0         # seconds per frame; see ocr_image for why this exists
+OCR_TIMEOUT = 60.0         # seconds per frame; see ocr_image for why this exists
 
 
 # --------------------------------------------------------------------------

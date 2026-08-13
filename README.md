@@ -130,7 +130,7 @@ merged: raise `--sensitivity`. A 5-minute video takes about 30 s.
 python3 tests/test_vtl.py
 ```
 
-70 checks against two fixtures the suite builds itself. The point of the second
+72 checks against two fixtures the suite builds itself. The point of the second
 fixture is that its camera motion is known *analytically* — every frame is
 rendered in Python by moving a viewport over a still image along a closed-form
 path — so the camera rates can be asserted numerically rather than eyeballed:
@@ -221,6 +221,10 @@ blurred passing cars        no camera move    ~0 (peak 0.04)
 - OCR is tesseract on video frames: strong on titles, slides and screen
   recordings, weak on small text over motion. Per-event confidence is reported;
   under ~70 treat the wording as a guess.
+- How much text OCR recovers depends on the tesseract build. The same fixture and
+  the same code read 4 of 4 title cards locally and as few as 1 of 4 on Ubuntu's
+  package. Text that *is* reported is reliable; absence of text is weaker
+  evidence than its presence.
 - Speech-like vs music-like is a band-energy heuristic, labelled as such
   everywhere it appears. A sustained pure tone reads as "speech-like".
 - A scene with strong depth parallax — shot from a moving vehicle, say — has no
