@@ -89,6 +89,11 @@ Five design choices do the real work:
   bundle says so in the summary and in the transcript section, rather than
   leaving a hole that gets filled with invention.
 
+**[docs/example/](docs/example/) is a worked example** on a 40-second montage of
+four CC0 clips: what the converter reports shot by shot, with the frames, and an
+honest look at where OCR reports things that are not there. Rebuild it with
+`bash tests/make_example.sh`.
+
 See [SPEC.md](SPEC.md) for the format definition and its limits, and
 [BENCHMARKS.md](BENCHMARKS.md) for measured results against uniform sampling.
 

@@ -1163,6 +1163,26 @@ def norm_text(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
+def is_probably_noise(ev: dict) -> bool:
+    """Reject a text event that is most likely a phantom glyph, not text.
+
+    `--psm 11` hunts sparse text by connected-component analysis, so on any
+    textured surface — foliage, gravel, reflections, film grain — it finds
+    letter-shaped components and reports them with middling confidence. Measured
+    on four CC0 stock clips containing no text at all, it produced fifteen
+    "events": 'si', 'GA', 'de', 'Pa,', '(an', 'ae', 'hi' at confidence 55-84.
+
+    The discriminator is persistence. Text that is actually on screen stays there
+    across consecutive samples; a hallucinated glyph appears in one frame and is
+    gone. So a single-sample event is only believed when it is either long enough
+    to be hard to hallucinate, or read with high confidence.
+    """
+    alnum = len(re.sub(r"[^A-Za-z0-9]", "", ev["text"]))
+    if ev["count"] > 1:
+        return False                     # seen more than once: believe it
+    return alnum < 5 and ev["mean_conf"] < 80.0
+
+
 def build_text_events(samples: list[tuple[float, list[dict]]], probe_step: float
                       ) -> list[dict]:
     """Collapse per-frame OCR lines into events with a first/last-seen span."""
@@ -1197,6 +1217,8 @@ def build_text_events(samples: list[tuple[float, list[dict]]], probe_step: float
         ev.pop("_conf")
         ev["first_seen"] = round(ev["first_seen"], 3)
         ev["last_seen"] = round(ev["last_seen"], 3)
+        if is_probably_noise(ev):
+            continue
         out.append(ev)
     return sorted(out, key=lambda e: (e["first_seen"], -e["count"]))
 
