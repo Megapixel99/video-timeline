@@ -976,27 +976,38 @@ def pick_keyframes(vs: VisualSignals, shots: list[dict], max_frames: int,
     # nothing, but a tenth of the picture is new. Measured on real files, area
     # changed separates the two cases cleanly (waveform 2-5%, repainted UI
     # 9-12%) where histogram similarity does not (0.98-0.99 for both).
+    def new_content(i: int, j: int) -> float:
+        """Fraction of the frame that visibly differs between two samples."""
+        return float((np.abs(vs.L[j] - vs.L[i]) > 12).mean())
+
     out: list[Keyframe] = []
-    prev_k, prev_t, prev_shot = None, None, None
+    prev_k, prev_shot = None, None
     for kf, k in kfs:
-        if prev_k is not None and kf.shot == prev_shot and kf.t - prev_t < coverage:
-            changed = float((np.abs(vs.L[k] - vs.L[prev_k]) > 12).mean())
-            if changed < 0.07:
-                continue
+        # No time condition. An earlier version only de-duplicated frames closer
+        # together than the coverage floor, on the theory that a distant frame is
+        # owed regardless. That was wrong: it put four pixel-identical copies of
+        # one slide in a bundle, 20-30s apart, each showing the reader nothing.
+        # If the picture has not changed, a later copy of it is not coverage.
+        if prev_k is not None and kf.shot == prev_shot and new_content(prev_k, k) < 0.07:
+            continue
         out.append((kf, k))
-        prev_k, prev_t, prev_shot = k, kf.t, kf.shot
+        prev_k, prev_shot = k, kf.shot
 
     # The coverage floor is advertised as a guarantee, so enforce it rather than
     # hope the allocation happened to satisfy it. Selection and de-duplication
     # both work per-window and can leave a gap wider than the floor; this fills
     # any that survived, so "no stretch longer than `coverage` goes unobserved"
     # is actually true of the bundle.
-    def frozen_between(i: int, j: int) -> bool:
-        """True if the image provably does not change between two samples."""
-        if j <= i + 1:
-            return True
-        seg = vs.delta[i + 1:j + 1]
-        return bool(seg.size) and float(seg.max()) < 0.002
+    def already_shown(last_kept: int | None, j: int) -> bool:
+        """Would a frame at j tell the reader anything the last one did not?
+
+        This replaced a `max delta < 0.002` test for "provably frozen". That
+        threshold was stricter than the de-duplication threshold, so slides
+        carrying faint compression noise counted as *changing* and kept earning
+        fill frames that were visually identical. Asking the same question the
+        same way in both places is what makes the two agree.
+        """
+        return last_kept is not None and new_content(last_kept, j) < 0.07
 
     final: list[tuple[Keyframe, int]] = []
     for si, s in enumerate(shots):
@@ -1004,37 +1015,37 @@ def pick_keyframes(vs: VisualSignals, shots: list[dict], max_frames: int,
         mine = [(kf, k) for kf, k in out if kf.shot == si + 1]
         marks = sorted(mine, key=lambda p: p[0].t)
         cursor = a
+        last_kept: int | None = None
         filled: list[tuple[Keyframe, int]] = []
+
+        def fill(mid: int) -> Keyframe:
+            return Keyframe(index=0, t=float(vs.times[mid]), shot=si + 1,
+                            pos_in_shot="fill",
+                            reason=f"coverage floor — nothing else marked this stretch, "
+                                   f"and {coverage:.0f}s had passed unobserved")
+
         for kf, k in marks:
             while (k - cursor) / vs.fps > coverage:
                 mid = cursor + int(coverage * vs.fps)
-                # A stretch measured as frozen is not unobserved: the frame
-                # before it shows exactly what is on screen for its whole
-                # length, and the shot record states the frozen span outright.
-                # Filling it would emit identical images — a static slide held
-                # for 80s produced eight copies of itself before this check.
-                if frozen_between(cursor, mid):
+                # A stretch showing nothing new is not unobserved: the frame
+                # before it depicts the screen for its whole length, and the shot
+                # record names the frozen span outright. Filling it would emit
+                # identical images — a slide held for 80s produced four copies of
+                # itself before this check compared against the last kept frame.
+                if already_shown(last_kept, mid):
                     cursor = mid
                     continue
-                filled.append((Keyframe(index=0, t=float(vs.times[mid]), shot=si + 1,
-                                        pos_in_shot="fill",
-                                        reason=f"coverage floor — nothing else marked this "
-                                               f"stretch, and {coverage:.0f}s had passed unobserved"),
-                               mid))
-                cursor = mid
+                filled.append((fill(mid), mid))
+                cursor = last_kept = mid
             filled.append((kf, k))
-            cursor = k
+            cursor = last_kept = k
         while (b - 1 - cursor) / vs.fps > coverage:
             mid = cursor + int(coverage * vs.fps)
-            if frozen_between(cursor, mid):
+            if already_shown(last_kept, mid):
                 cursor = mid
                 continue
-            filled.append((Keyframe(index=0, t=float(vs.times[mid]), shot=si + 1,
-                                    pos_in_shot="fill",
-                                    reason=f"coverage floor — nothing else marked this "
-                                           f"stretch, and {coverage:.0f}s had passed unobserved"),
-                           mid))
-            cursor = mid
+            filled.append((fill(mid), mid))
+            cursor = last_kept = mid
         final.extend(filled)
 
     result: list[Keyframe] = []
