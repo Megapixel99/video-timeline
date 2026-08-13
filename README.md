@@ -91,9 +91,11 @@ Five design choices do the real work:
   leaving a hole that gets filled with invention.
 
 **[docs/example/](docs/example/) is a worked example** on a 40-second montage of
-four CC0 clips: what the converter reports shot by shot, with the frames, and an
-honest look at where OCR reports things that are not there. Rebuild it with
-`bash tests/make_example.sh`.
+four [CC0 clips from Pexels](https://www.pexels.com/search/videos/creative%20commons%20zero/):
+what the converter reports shot by shot, with the frames, and an honest look at
+where OCR reports things that are not there. Rebuild it with
+`bash tests/make_example.sh`, which fetches the clips on demand — they are not
+committed.
 
 See [SPEC.md](SPEC.md) for the format definition and its limits, and
 [BENCHMARKS.md](BENCHMARKS.md) for measured results against uniform sampling.
@@ -242,6 +244,28 @@ blurred passing cars        no camera move    ~0 (peak 0.04)
   roughly where the camera changed behaviour, not the exact frame.
 - Very long videos produce a long `TIMELINE.md` (~18 KB per minute of video).
   `timeline.json` carries the same content if you would rather query it.
+
+## Test footage
+
+The two test fixtures are generated from scratch by `tests/`, so nothing in the
+suite depends on downloaded media.
+
+The worked example in [docs/example/](docs/example/) uses four clips from
+[Pexels](https://www.pexels.com/search/videos/creative%20commons%20zero/),
+released under Creative Commons Zero. CC0 waives the attribution requirement, but
+they are worth crediting and worth being able to find again:
+
+| segment | clip | id |
+|---|---|---|
+| 0–10s | 360 black and white urban panorama | [35803522](https://www.pexels.com/video/360-black-and-white-urban-panorama-35803522/) |
+| 10–20s | pan shot of the grass field | [4085319](https://www.pexels.com/video/pan-shot-of-the-grass-field-4085319/) |
+| 20–30s | metro cdmx | [19595834](https://www.pexels.com/video/metro-cdmx-2-4-19595834/) |
+| 30–40s | patterns and lines on white background | [10922866](https://www.pexels.com/video/patterns-and-lines-on-white-background-10922866/) |
+
+`tests/make_example.sh` fetches them on demand and joins them; none are committed,
+since the montage alone is larger than the whole repository. Pexels was also the
+source of the footage used to cross-check camera-motion measurements against an
+independent algorithm — see [BENCHMARKS.md](BENCHMARKS.md).
 
 ## TODO
 

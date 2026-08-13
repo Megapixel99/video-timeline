@@ -2,18 +2,19 @@
 
 What the converter produces, on a video anyone can rebuild.
 
-The source is a 40-second montage of **four CC0 clips from
-[pexels.com](https://www.pexels.com/search/videos/creative%20commons%20zero/)**,
+The source is a 40-second montage of **four clips from
+[Pexels](https://www.pexels.com/search/videos/creative%20commons%20zero/)**
+released under Creative Commons Zero,
 joined end to end with hard cuts at 10s, 20s and 30s. A montage rather than a
 single clip, because most of what this format has to say is about *structure* —
 where the cuts are, which shots resemble which, how the camera behaves in each.
 
 | segment | clip | pexels id |
 |---|---|---|
-| 0–10s | 360 black and white urban panorama | 35803522 |
-| 10–20s | pan shot of a grass field | 4085319 |
-| 20–30s | metro cdmx | 19595834 |
-| 30–40s | patterns and lines on white background | 10922866 |
+| 0–10s | 360 black and white urban panorama | [35803522](https://www.pexels.com/video/360-black-and-white-urban-panorama-35803522/) |
+| 10–20s | pan shot of a grass field | [4085319](https://www.pexels.com/video/pan-shot-of-the-grass-field-4085319/) |
+| 20–30s | metro cdmx | [19595834](https://www.pexels.com/video/metro-cdmx-2-4-19595834/) |
+| 30–40s | patterns and lines on white background | [10922866](https://www.pexels.com/video/patterns-and-lines-on-white-background-10922866/) |
 
 ## Reproduce it
 
