@@ -47,6 +47,7 @@ BLOCK_SEARCH = 3           # +/- px each grid block may search from the global s
 DARK_LUMA = 16             # mean luma below this counts as "near black"
 AUDIO_SR = 16000
 AUDIO_HOP = 0.05           # seconds per audio analysis window
+OCR_TIMEOUT = 25.0         # seconds per frame; see ocr_image for why this exists
 
 
 # --------------------------------------------------------------------------
@@ -1108,10 +1109,26 @@ def label_frame(path: Path, lines: list[str]) -> None:
 # OCR
 # --------------------------------------------------------------------------
 
-def ocr_image(path: Path, min_conf: float) -> list[dict]:
+def ocr_image(path: Path, min_conf: float, timeout: float = OCR_TIMEOUT
+              ) -> list[dict] | None:
+    """OCR one frame. [] means "no text found"; None means "could not read it".
+
+    The timeout is not defensive padding. `--psm 11` does connected-component
+    analysis to find sparse text, and on a high-frequency texture — noise, dense
+    foliage, a static-filled frame — the component count explodes. A frame of
+    random noise took 3s here and stalled a Linux CI runner for over 40 minutes
+    on the same input, while reporting 36 "text" events that were pure garbage.
+    Unbounded, that is a hang in the converter for anyone pointing it at noisy
+    footage, so it is bounded, and a frame that times out is reported as unread
+    rather than as empty.
+    """
     if not have("tesseract"):
         return []
-    p = run(["tesseract", str(path), "stdout", "--psm", "11", "-l", "eng", "tsv"])
+    try:
+        p = run(["tesseract", str(path), "stdout", "--psm", "11", "-l", "eng", "tsv"],
+                timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return None
     if p.returncode != 0:
         return []
     rows = p.stdout.splitlines()
@@ -1819,6 +1836,7 @@ def convert(args) -> Path:
     # ---- OCR -------------------------------------------------------------
     ocr_samples: list[tuple[float, list[dict]]] = []
     ocr_status = ""
+    ocr_timeouts = 0
     probe_step = 0.0
     if args.ocr != "off" and have("tesseract"):
         with tempfile.TemporaryDirectory() as td:
@@ -1839,15 +1857,21 @@ def convert(args) -> Path:
                 probes = sorted(tdp.glob("p*.jpg"))
                 with ThreadPoolExecutor(max_workers=min(8, (os.cpu_count() or 4))) as ex:
                     results = list(ex.map(lambda p: ocr_image(p, args.ocr_conf), probes))
+                ocr_timeouts += sum(1 for r in results if r is None)
                 for i, r in enumerate(results):
-                    ocr_samples.append((t0 + (i + 0.5) * probe_step, r))
+                    ocr_samples.append((t0 + (i + 0.5) * probe_step, r or []))
         log(f"OCR: {len(kept)} keyframes")
         with ThreadPoolExecutor(max_workers=min(8, (os.cpu_count() or 4))) as ex:
             kres = list(ex.map(lambda k: ocr_image(bundle / k.file, args.ocr_conf), kept))
+        ocr_timeouts += sum(1 for r in kres if r is None)
         for k, r in zip(kept, kres):
-            k.ocr = r
-            ocr_samples.append((k.t, r))
+            k.ocr = r or []
+            ocr_samples.append((k.t, r or []))
         ocr_status = "tesseract ran and found no text above the confidence threshold."
+        if ocr_timeouts:
+            ocr_status += (f" {ocr_timeouts} frame(s) could not be read within "
+                           f"{OCR_TIMEOUT:.0f}s and were skipped — usually a "
+                           f"high-frequency texture rather than text.")
     elif args.ocr == "off":
         ocr_status = "OCR disabled by --ocr off."
     else:

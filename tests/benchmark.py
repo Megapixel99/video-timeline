@@ -63,7 +63,10 @@ def convert(path: Path, out: Path) -> tuple[dict, float]:
     t = time.perf_counter()
     r = subprocess.run(
         [sys.executable, str(HERE.parent / "vtl_convert.py"), str(path),
-         "-o", str(out), "--force", "--no-hash", "--no-sheets"],
+         # OCR is irrelevant to measuring frame *selection*, and on a
+         # noise-texture fixture tesseract spends minutes finding nothing —
+         # it made CI unusable while contributing no measurement.
+         "-o", str(out), "--force", "--no-hash", "--no-sheets", "--ocr", "off"],
         capture_output=True, text=True)
     elapsed = time.perf_counter() - t
     if r.returncode != 0:
