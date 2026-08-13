@@ -1,8 +1,9 @@
 # VTL — hand a video to a language model without the guesswork
 
+[![repo](https://img.shields.io/badge/github-Megapixel99%2Fvideo--timeline-181717?logo=github)](https://github.com/Megapixel99/video-timeline)
 [![tests](https://github.com/Megapixel99/video-timeline/actions/workflows/tests.yml/badge.svg)](https://github.com/Megapixel99/video-timeline/actions/workflows/tests.yml)
 [![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/Megapixel99/video-timeline/blob/main/LICENSE)
 [![requires](https://img.shields.io/badge/requires-ffmpeg-orange)](https://ffmpeg.org/)
 
 When you give me an MP4 or MOV, the usual move is to pull N screenshots and
