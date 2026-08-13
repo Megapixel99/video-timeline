@@ -84,7 +84,8 @@ Five design choices do the real work:
   bundle says so in the summary and in the transcript section, rather than
   leaving a hole that gets filled with invention.
 
-See [SPEC.md](SPEC.md) for the format definition and its limits.
+See [SPEC.md](SPEC.md) for the format definition and its limits, and
+[BENCHMARKS.md](BENCHMARKS.md) for measured results against uniform sampling.
 
 ## Requirements
 
@@ -161,6 +162,22 @@ A real 16-second handheld take that holds still, then pans:
 
 The pan across the last eight seconds is invisible in the shot-level median.
 Phase correlation independently measures that span at +0.057.
+
+### Benchmarks
+
+```bash
+python3 tests/benchmark.py
+```
+
+Compares frame selection against uniform sampling — N evenly spaced screenshots,
+the baseline this format replaces — at an equal frame budget. Across 28 shots of
+real footage, uniform sampling never looks at 9 of them (32%) and spends 12 of
+its 40 frames on pictures it had already seen; VTL misses no shot and wastes 2.
+
+On the *size of the largest unobserved gap* the two come out level, which is the
+honest result — the advantage is in never missing a shot and not wasting budget,
+not in smaller gaps. Full numbers, caveats and conversion cost in
+[BENCHMARKS.md](BENCHMARKS.md).
 
 ### Cross-checking on real footage
 
