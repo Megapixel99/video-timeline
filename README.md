@@ -124,7 +124,7 @@ merged: raise `--sensitivity`. A 5-minute video takes about 30 s.
 python3 tests/test_vtl.py
 ```
 
-67 checks against two fixtures the suite builds itself. The point of the second
+73 checks against two fixtures the suite builds itself. The point of the second
 fixture is that its camera motion is known *analytically* — every frame is
 rendered in Python by moving a viewport over a still image along a closed-form
 path — so the camera rates can be asserted numerically rather than eyeballed:
@@ -246,45 +246,6 @@ Two findings from when this was investigated, so they don't need rediscovering:
 To confirm it took effect, check that the bundle's `manifest.json` shows
 `"asr"` populated under `tools`, and that `TIMELINE.md` no longer lists
 **Speech transcript** under *Signals not available for this file*.
-
-### Scene grouping does not earn its place on screen content
-
-The **scene** level groups consecutive shots by colour-histogram similarity. It
-works on camera footage, and is close to useless on anything screen-recorded:
-the 7-minute slide presentation reported **1 scene for 8 slides**, because every
-slide shares the same white background. The `resembles` field already expresses
-that relationship, and expresses it better — `shot 5 (1.00), shot 8 (1.00)`
-names *which* shots match and how strongly, rather than collapsing them into one
-undifferentiated span.
-
-Worth reconsidering: drop the level for rendered sources (`vs.rendered` already
-tells us), group on something other than colour, or remove it entirely.
-
-Before removing it, note what hangs off it — `scenes` appears in 18 places in
-`vtl_convert.py`:
-
-- `group_scenes()` (~line 1364) produces it
-- `contact_sheets()` (~line 1632) builds **one sheet per scene**, so dropping
-  scenes means choosing a new grouping for `sheets/` (per shot is the obvious
-  substitute)
-- the header line, the summary bullet, and the `▬ SCENE n` dividers in
-  `TIMELINE.md` all read from it
-
-Nothing in `SPEC.md`, `README.md` or the test suite asserts on scenes, so the
-blast radius is confined to the converter.
-
-### `steadiness` prints implausible-looking numbers
-
-The evidence line can read `steadiness 2.4/126.1/0.0`. The 126 is arithmetically
-correct — steadiness is `|median| / MAD`, and a perfectly uniform scroll has
-almost no scatter, so the ratio explodes. It is also **harmless**: the value is
-clamped to 5.0 where it is actually used (`min(k, 5.0)` when scoring candidate
-axes, ~line 711), so no label or decision depends on the large number.
-
-Purely a presentation problem — it reads like a bug to anyone who meets it.
-Clamp or bucket the *displayed* value in the evidence string (~line 668), or
-render anything above ~10 as `>10`. Do not clamp the stored value without
-checking the scoring path first.
 
 ## On how this was built
 

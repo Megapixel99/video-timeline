@@ -159,6 +159,24 @@ def test_rendered_source(motion: Path) -> None:
           "a rendered source carries the frame-of-reference caveat")
 
 
+def test_presentation_layers() -> None:
+    """Reporting rules that keep the document from claiming structure it lacks."""
+    print("\nreporting hygiene")
+    # scene grouping is only a real middle level when it partitions the shots
+    cases = [(1, 8, False), (6, 6, False), (1, 1, False), (3, 12, True), (2, 3, True)]
+    for n_sc, n_sh, want in cases:
+        got = V.scenes_are_informative({"scenes": [{}] * n_sc, "shots": [{}] * n_sh})
+        check(got == want,
+              f"{n_sc} scene(s) over {n_sh} shot(s) -> "
+              f"{'reported' if want else 'suppressed'}", f"got {got}")
+
+    # coherence is unbounded above; printed raw it reads like a bug
+    import re
+    src = (HERE.parent / "vtl_convert.py").read_text()
+    check("return \">10\" if k > 10" in src,
+          "coherence above 10 is displayed as >10, not as a bare large number")
+
+
 def test_estimator_unit() -> None:
     """The block matcher itself, on synthetic shifts with no video in the loop."""
     print("\nmotion estimator (synthetic)")
@@ -326,6 +344,7 @@ if __name__ == "__main__":
     test_motion_phases(motion_fx)
     test_no_spurious_phases()
     test_rendered_source(motion_fx)
+    test_presentation_layers()
     test_structure(main_fx)
     test_containers(main_fx)
     print(f"\n{CHECKS - len(FAILURES)}/{CHECKS} checks passed")

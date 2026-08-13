@@ -15,6 +15,9 @@ __pycache__/
 .venv/
 venv/
 
+# Working notes — untracked on purpose, for writing things up later
+*.local.md
+
 # Local editor / tool state
 .claude/settings.local.json
 .DS_Store
