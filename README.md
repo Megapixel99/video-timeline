@@ -1,5 +1,10 @@
 # VTL — hand a video to a language model without the guesswork
 
+[![tests](https://github.com/Megapixel99/video-timeline/actions/workflows/tests.yml/badge.svg)](https://github.com/Megapixel99/video-timeline/actions/workflows/tests.yml)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![requires](https://img.shields.io/badge/requires-ffmpeg-orange)](https://ffmpeg.org/)
+
 When you give me an MP4 or MOV, the usual move is to pull N screenshots and
 reason over them. That fails in a specific way: a screenshot says nothing about
 *when* it happened, how long after the last one, whether the camera moved or the
@@ -91,7 +96,7 @@ See [SPEC.md](SPEC.md) for the format definition and its limits, and
 
 | | |
 |---|---|
-| required | `ffmpeg`, `numpy`, `Pillow` |
+| required | `ffmpeg`, `numpy`, `Pillow`, Python 3.10+ (CI runs 3.10 / 3.12 / 3.13) |
 | optional | `tesseract` — on-screen text (titles, UI, slides, captions) |
 | optional | a whisper CLI or python module — speech transcript |
 

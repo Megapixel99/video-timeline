@@ -12,8 +12,25 @@
 # Audio: silence 0–2, 440 Hz tone 2–8, silence 8–11, noise 11–25.
 set -euo pipefail
 cd "$(dirname "$0")"
-F=/System/Library/Fonts/Supplemental/Arial.ttf
-[ -f "$F" ] || F=/System/Library/Fonts/Helvetica.ttc
+# drawtext needs a real font file. Search the usual places on macOS and Linux
+# rather than assuming one — hardcoding /System/Library paths made this script,
+# and therefore the README quick start, silently macOS-only.
+F=""
+for c in \
+  /System/Library/Fonts/Supplemental/Arial.ttf \
+  /System/Library/Fonts/Helvetica.ttc \
+  /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf \
+  /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf \
+  /usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf \
+  /usr/share/fonts/TTF/DejaVuSans.ttf \
+  /usr/share/fonts/dejavu/DejaVuSans.ttf ; do
+  [ -f "$c" ] && F="$c" && break
+done
+if [ -z "$F" ]; then
+  echo "no usable TTF found. Install a font package (Debian/Ubuntu:" >&2
+  echo "  apt-get install fonts-dejavu-core) or edit F= in $0" >&2
+  exit 1
+fi
 S=1280x720
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 V="-c:v libx264 -pix_fmt yuv420p -r 30 -preset veryfast"

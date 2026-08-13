@@ -1,0 +1,60 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # ffmpeg is required; tesseract is optional but exercises the OCR path,
+      # and fonts-dejavu-core is what the fixture generator draws its title
+      # cards with on Linux
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg tesseract-ocr fonts-dejavu-core
+          ffmpeg -version | head -1
+          tesseract --version | head -1
+
+      - name: Install Python dependencies
+        run: pip install --quiet numpy pillow
+
+      # Fixtures are generated, not committed. Building them here is itself a
+      # test: the suite claims it can rebuild them from nothing.
+      - name: Build fixtures
+        run: |
+          bash tests/make_fixture.sh
+          python3 tests/make_motion_fixture.py
+
+      - name: Run the test suite
+        run: python3 tests/test_vtl.py
+
+      - name: Cross-check motion against an independent algorithm
+        run: python3 tests/crosscheck_motion.py
+
+      - name: Benchmark against uniform sampling
+        run: python3 tests/benchmark.py
+
+      # The documented first-run path, exactly as a new user would follow it
+      - name: Quick start from the README
+        run: |
+          python3 vtl_convert.py tests/fixture.mp4 -o /tmp/smoke.vtl
+          test -s /tmp/smoke.vtl/TIMELINE.md
+          test -s /tmp/smoke.vtl/timeline.json
+          test -n "$(ls /tmp/smoke.vtl/frames)"
+          head -3 /tmp/smoke.vtl/TIMELINE.md
