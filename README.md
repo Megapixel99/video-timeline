@@ -130,7 +130,7 @@ merged: raise `--sensitivity`. A 5-minute video takes about 30 s.
 python3 tests/test_vtl.py
 ```
 
-73 checks against two fixtures the suite builds itself. The point of the second
+70 checks against two fixtures the suite builds itself. The point of the second
 fixture is that its camera motion is known *analytically* — every frame is
 rendered in Python by moving a viewport over a still image along a closed-form
 path — so the camera rates can be asserted numerically rather than eyeballed:
