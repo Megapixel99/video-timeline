@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Seth Wheeler
 # Build a synthetic test video with known ground truth, so the converter's
 # output can be checked against what is actually in the file.
 #

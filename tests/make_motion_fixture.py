@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Seth Wheeler
 """
 Build a camera-motion fixture with exactly known ground truth.
 

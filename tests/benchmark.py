@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Seth Wheeler
 """
 Benchmark VTL's frame selection against uniform sampling, at an equal budget.
 
