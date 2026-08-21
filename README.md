@@ -13,6 +13,11 @@ subject did, or what happened in the gap between samples. So the gap gets filled
 with a plausible story. The errors aren't in reading the frames — they're in
 reading the intervals between frames.
 
+**Write-up:** [Choosing Video Frames by Content Instead of by a
+Clock](https://sethwheeler.dev/blog/content-aware-frame-selection/) — at an equal frame
+budget, uniform sampling missed 9 of 28 shots across five real videos and spent 12 of
+its 40 frames re-photographing things it had already seen.
+
 `vtl_convert.py` turns a video into a **VTL bundle**: a measured timeline with
 frames attached to it, rather than frames with a timeline guessed around them.
 
